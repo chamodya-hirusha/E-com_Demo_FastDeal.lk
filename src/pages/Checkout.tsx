@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, Loader2, CheckCircle, CreditCard, Banknote, Landmark } from 'lucide-react';
-import Layout from '@/components/layout/Layout';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateOrder } from '@/hooks/useOrders';
@@ -85,7 +84,7 @@ const Checkout = () => {
 
   if (items.length === 0 && !orderSuccess) {
     return (
-      <Layout>
+      <>
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Your Cart is Empty</h1>
           <p className="text-muted-foreground mb-8">
@@ -98,13 +97,13 @@ const Checkout = () => {
             </Link>
           </Button>
         </div>
-      </Layout>
+      </>
     );
   }
 
   if (orderSuccess) {
     return (
-      <Layout>
+      <>
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-md mx-auto text-center">
             <CheckCircle className="h-16 w-16 text-success mx-auto mb-6" />
@@ -129,12 +128,12 @@ const Checkout = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </>
     );
   }
 
   return (
-    <Layout>
+    <>
       <div className="container mx-auto px-4 py-8">
         <Button variant="ghost" className="mb-6" asChild>
           <Link to="/products">
@@ -391,7 +390,7 @@ const Checkout = () => {
           </div>
         </form>
       </div>
-    </Layout>
+    </>
   );
 };
 

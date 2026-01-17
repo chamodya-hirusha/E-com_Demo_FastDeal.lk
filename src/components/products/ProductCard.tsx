@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Eye } from 'lucide-react';
+import { ShoppingCart, Eye, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Product } from '@/types';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +13,19 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+
+  const isFavorite = isInWishlist(product.id);
+
+  const toggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isFavorite) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
 
   const formatPrice = (price: number) => {
     return `Rs. ${price.toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
@@ -46,6 +60,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
               </Badge>
             )}
           </div>
+
+          {/* Wishlist Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`absolute right-2 top-2 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-all ${isFavorite ? 'text-destructive' : 'text-muted-foreground'
+              }`}
+            onClick={toggleWishlist}
+          >
+            <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+          </Button>
 
           {isOutOfStock && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">

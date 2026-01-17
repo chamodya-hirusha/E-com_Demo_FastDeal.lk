@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { Package, ChevronRight, Loader2 } from 'lucide-react';
-import Layout from '@/components/layout/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrders } from '@/hooks/useOrders';
 import { Button } from '@/components/ui/button';
@@ -34,17 +33,17 @@ const Orders = () => {
 
   if (authLoading || isLoading) {
     return (
-      <Layout>
+      <>
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </Layout>
+      </>
     );
   }
 
   if (!user) {
     return (
-      <Layout>
+      <>
         <div className="container mx-auto px-4 py-16 text-center">
           <Package className="h-16 w-16 text-muted-foreground/50 mx-auto mb-6" />
           <h1 className="text-2xl font-bold mb-4">Sign in to view your orders</h1>
@@ -55,12 +54,12 @@ const Orders = () => {
             <Link to="/auth">Sign In</Link>
           </Button>
         </div>
-      </Layout>
+      </>
     );
   }
 
   return (
-    <Layout>
+    <>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">My Orders</h1>
 
@@ -136,7 +135,7 @@ const Orders = () => {
           </div>
         )}
       </div>
-    </Layout>
+    </>
   );
 };
 

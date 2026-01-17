@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Menu, X, Search, Package } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, Search, Package, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,87 +13,51 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [adminLoginOpen, setAdminLoginOpen] = useState(false);
-  const [demoCredentials, setDemoCredentials] = useState({ username: '', password: '' });
   const [showBanner, setShowBanner] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
   const { totalItems, setIsOpen } = useCart();
+  const { wishlist } = useWishlist();
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollDelta = currentScrollY - lastScrollY;
-      
-      // Threshold for showing/hiding to prevent micro-flickering
-      const threshold = 5;
-      
-      if (currentScrollY < 10) {
-        setShowBanner(true);
-      } else if (Math.abs(scrollDelta) > threshold) {
-        if (currentScrollY > lastScrollY) {
-          // Scrolling down
-          setShowBanner(false);
-        } else {
-          // Scrolling up
-          setShowBanner(true);
-        }
-        setLastScrollY(currentScrollY);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          const scrollDelta = currentScrollY - lastScrollY.current;
+
+          const thresholdDown = 60;
+          const thresholdUp = 30;
+
+          if (currentScrollY <= 50) {
+            setShowBanner(true);
+          } else if (Math.abs(scrollDelta) > (scrollDelta > 0 ? thresholdDown : thresholdUp)) {
+            if (currentScrollY > lastScrollY.current) {
+              setShowBanner(false);
+            } else {
+              setShowBanner(true);
+            }
+            lastScrollY.current = currentScrollY;
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
-  const handleAdminLogin = async () => {
-    const DEMO_EMAIL = 'demouser@admin.com';
-    const DEMO_PASSWORD = 'user12345';
 
-    try {
-      // Try to sign in with demo credentials
-      let { data, error } = await supabase.auth.signInWithPassword({
-        email: DEMO_EMAIL,
-        password: DEMO_PASSWORD,
-      });
-
-      // If account doesn't exist, create it
-      if (error && error.message.includes('Invalid login credentials')) {
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: DEMO_EMAIL,
-          password: DEMO_PASSWORD,
-        });
-
-        if (!signUpError && signUpData.user) {
-          // Add admin role
-          await supabase.from('user_roles').insert([{ user_id: signUpData.user.id, role: 'admin' }]);
-        }
-      }
-
-      toast.success('Logging in as admin...');
-      setAdminLoginOpen(false);
-      // Force reload to apply admin privileges
-      window.location.href = '/admin/dashboard';
-    } catch (e) {
-      console.error('Login error:', e);
-      toast.error('Login failed');
-    }
-  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,10 +72,10 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-primary shadow-lg transform-gpu transition-all duration-300">
+    <header className="sticky top-0 z-50 bg-primary shadow-lg isolate transform-gpu will-change-transform">
       {/* Top banner */}
       <div
-        className={`bg-accent text-center overflow-hidden transition-all duration-300 ${showBanner ? 'py-1.5 opacity-100 max-h-10' : 'py-0 opacity-0 max-h-0'
+        className={`bg-accent text-center overflow-hidden transition-[max-height,opacity] duration-200 ease-in-out ${showBanner ? 'max-h-12 opacity-100 py-1.5' : 'max-h-0 opacity-0 py-0'
           }`}
       >
         <p className="text-sm font-semibold text-accent-foreground">
@@ -149,7 +114,23 @@ const Header = () => {
           </form>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
+            {/* Wishlist */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative text-primary-foreground hover:bg-primary-foreground/10"
+              asChild
+            >
+              <Link to="/wishlist">
+                <Heart className="h-6 w-6" />
+                {wishlist.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
+                    {wishlist.length}
+                  </span>
+                )}
+              </Link>
+            </Button>
             {/* Cart */}
             <Button
               variant="ghost"
@@ -189,6 +170,12 @@ const Header = () => {
                       My Orders
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/wishlist" className="w-full cursor-pointer">
+                      <Heart className="mr-2 h-4 w-4" />
+                      My Wishlist
+                    </Link>
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator />
@@ -207,51 +194,7 @@ const Header = () => {
               </DropdownMenu>
             ) : (
               <div className="flex items-center gap-2">
-                <Dialog open={adminLoginOpen} onOpenChange={setAdminLoginOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="hidden sm:inline-flex bg-transparent border-primary-foreground/40 text-primary-foreground hover:bg-transparent hover:border-primary-foreground/60"
-                    >
-                      Admin Login
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Admin Login</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="admin-username">Username</Label>
-                        <Input
-                          id="admin-username"
-                          placeholder="demouser"
-                          value={demoCredentials.username}
-                          onChange={(e) => setDemoCredentials({ ...demoCredentials, username: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="admin-password">Password</Label>
-                        <Input
-                          id="admin-password"
-                          type="password"
-                          placeholder="user12345"
-                          value={demoCredentials.password}
-                          onChange={(e) => setDemoCredentials({ ...demoCredentials, password: e.target.value })}
-                        />
-                      </div>
-                      <div className="bg-muted p-3 rounded-lg text-sm">
-                        <p className="font-semibold mb-1">Demo Credentials:</p>
-                        <p>Username: <code className="bg-background px-2 py-1 rounded">demouser</code></p>
-                        <p>Password: <code className="bg-background px-2 py-1 rounded">user12345</code></p>
-                      </div>
-                      <Button onClick={handleAdminLogin} className="w-full gradient-primary">
-                        Login
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+
                 <Button
                   variant="secondary"
                   size="sm"
@@ -336,6 +279,13 @@ const Header = () => {
             >
               Vacuum Cleaners
             </Link>
+            <Link
+              to="/wishlist"
+              className="block py-2 text-primary-foreground hover:text-accent font-semibold"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              My Wishlist ({wishlist.length})
+            </Link>
             {!user && (
               <Link
                 to="/auth"
@@ -350,7 +300,7 @@ const Header = () => {
       )}
 
       {/* Category Navigation - Desktop */}
-      <nav className="hidden md:block bg-primary/90 border-t border-primary-foreground/10">
+      <nav className="hidden md:block bg-primary border-t border-primary-foreground/10">
         <div className="container mx-auto px-4">
           <ul className="flex items-center gap-6 py-2">
             <li>

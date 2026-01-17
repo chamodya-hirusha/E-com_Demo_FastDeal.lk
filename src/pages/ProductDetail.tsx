@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Minus, Plus, ChevronLeft, Truck, Shield, RotateCcw, Share2, MessageCircle } from 'lucide-react';
-import Layout from '@/components/layout/Layout';
+import { ShoppingCart, Minus, Plus, ChevronLeft, Truck, Shield, RotateCcw, Share2, MessageCircle, Heart } from 'lucide-react';
 import { useProduct, useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,7 @@ const ProductDetail = () => {
   const { data: product, isLoading, error } = useProduct(slug || '');
   const { data: relatedProducts } = useProducts(product?.category?.slug);
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
 
@@ -23,7 +24,7 @@ const ProductDetail = () => {
 
   if (isLoading) {
     return (
-      <Layout>
+      <>
         <div className="container mx-auto px-4 py-8">
           <div className="grid md:grid-cols-2 gap-8">
             <Skeleton className="aspect-square rounded-xl" />
@@ -36,13 +37,13 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </>
     );
   }
 
   if (error || !product) {
     return (
-      <Layout>
+      <>
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
           <p className="text-muted-foreground mb-8">
@@ -55,7 +56,7 @@ const ProductDetail = () => {
             </Link>
           </Button>
         </div>
-      </Layout>
+      </>
     );
   }
 
@@ -104,7 +105,7 @@ const ProductDetail = () => {
     .slice(0, 4);
 
   return (
-    <Layout>
+    <>
       <div className="container mx-auto px-4 py-4 md:py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-muted-foreground mb-4 md:mb-8 overflow-x-auto scrollbar-hide whitespace-nowrap pb-2">
@@ -179,6 +180,18 @@ const ProductDetail = () => {
               >
                 <MessageCircle className="h-4 w-4 md:mr-2 text-green-600 dark:text-green-400" />
                 <span className="hidden md:inline">Contact Seller</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => isInWishlist(product.id) ? removeFromWishlist(product.id) : addToWishlist(product)}
+                className={`flex-1 md:flex-none border-pink-200 hover:bg-pink-50 dark:border-pink-800 dark:hover:bg-pink-950/20 ${isInWishlist(product.id) ? 'text-destructive bg-pink-50' : ''
+                  }`}
+              >
+                <Heart className={`h-4 w-4 md:mr-2 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+                <span className="hidden md:inline">
+                  {isInWishlist(product.id) ? 'Wishlisted' : 'Add to Wishlist'}
+                </span>
               </Button>
             </div>
 
@@ -331,7 +344,7 @@ const ProductDetail = () => {
           </section>
         )}
       </div>
-    </Layout>
+    </>
   );
 };
 

@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal, X } from 'lucide-react';
-import Layout from '@/components/layout/Layout';
 import ProductGrid from '@/components/products/ProductGrid';
 import { useProducts, useCategories } from '@/hooks/useProducts';
 import { Button } from '@/components/ui/button';
@@ -168,7 +167,7 @@ const Products = () => {
   );
 
   return (
-    <Layout>
+    <>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -230,7 +229,7 @@ const Products = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 
