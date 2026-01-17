@@ -15,7 +15,7 @@ const HeroBanner = () => {
         <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-center">
           <div className="text-center md:text-left">
             <div className="inline-block mb-3 md:mb-4">
-              <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-accent text-accent-foreground font-bold text-xs md:text-sm animate-pulse-deal">
+              <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-accent text-accent-foreground font-bold text-xs md:text-sm">
                 🔥 Friday Special Deals
               </span>
             </div>

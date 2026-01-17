@@ -13,7 +13,7 @@ const FeaturedProducts = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 mb-6 md:mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-destructive text-destructive-foreground text-[10px] md:text-xs font-bold animate-pulse">
+              <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-destructive text-destructive-foreground text-[10px] md:text-xs font-bold">
                 HOT DEALS
               </span>
             </div>

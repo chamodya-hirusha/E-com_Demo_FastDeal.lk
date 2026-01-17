@@ -37,19 +37,23 @@ const Header = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
+      const scrollDelta = currentScrollY - lastScrollY;
+      
+      // Threshold for showing/hiding to prevent micro-flickering
+      const threshold = 5;
+      
       if (currentScrollY < 10) {
-        // Always show banner at the top
         setShowBanner(true);
-      } else if (currentScrollY > lastScrollY) {
-        // Scrolling down - hide banner
-        setShowBanner(false);
-      } else {
-        // Scrolling up - show banner
-        setShowBanner(true);
+      } else if (Math.abs(scrollDelta) > threshold) {
+        if (currentScrollY > lastScrollY) {
+          // Scrolling down
+          setShowBanner(false);
+        } else {
+          // Scrolling up
+          setShowBanner(true);
+        }
+        setLastScrollY(currentScrollY);
       }
-
-      setLastScrollY(currentScrollY);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -103,13 +107,13 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-primary shadow-lg">
+    <header className="sticky top-0 z-50 bg-primary shadow-lg transform-gpu transition-all duration-300">
       {/* Top banner */}
       <div
-        className={`bg-accent text-center overflow-hidden transition-all duration-300 ${showBanner ? 'py-1.5 opacity-100' : 'py-0 opacity-0 h-0'
+        className={`bg-accent text-center overflow-hidden transition-all duration-300 ${showBanner ? 'py-1.5 opacity-100 max-h-10' : 'py-0 opacity-0 max-h-0'
           }`}
       >
-        <p className="text-sm font-semibold text-accent-foreground animate-pulse-deal">
+        <p className="text-sm font-semibold text-accent-foreground">
           🎉 Special Friday Deals - Up to 50% OFF! Free Delivery on Orders Over Rs. 5,000
         </p>
       </div>
